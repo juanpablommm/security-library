@@ -12,13 +12,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -84,15 +80,10 @@ public class JwtManagement {
 
 	}
 
-	public String createToken(final String username) {
+	public String createToken(final String username, final String roles) {
 		try {
 			final OffsetDateTime offsetDateTime = OffsetDateTime.now(ZONEID);
 			final Date expiryTime = Date.from(offsetDateTime.plusMinutes(this.expiryTimeAtMinutes).toInstant());
-			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			if (!authentication.isAuthenticated())
-				throw new JwtManagementException("Error there is no previous DAO authentication to create the token");
-			String roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-					.collect(Collectors.joining(" "));
 			return Jwts.builder().setHeader(Map.of("typ", "JWT")).setClaims(Map.of("Role", roles)).setSubject(username)
 					.setExpiration(expiryTime).signWith(this.keyRsaSupplier.getPrivateKey(), SignatureAlgorithm.RS256)
 					.compact();
