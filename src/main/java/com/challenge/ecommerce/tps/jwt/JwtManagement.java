@@ -31,7 +31,10 @@ public class JwtManagement {
 
 	private final KeyRsaSupplier keyRsaSupplier;
 
+	private final Long expiryTimeAtMinutes;
+
 	private JwtManagement() {
+
 		throw new IllegalStateException("This is an utility class");
 	}
 
@@ -84,7 +87,7 @@ public class JwtManagement {
 	public String createToken(final String username) {
 		try {
 			final OffsetDateTime offsetDateTime = OffsetDateTime.now(ZONEID);
-			final Date expiryTime = Date.from(offsetDateTime.plusMinutes(1).toInstant());
+			final Date expiryTime = Date.from(offsetDateTime.plusMinutes(this.expiryTimeAtMinutes).toInstant());
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (!authentication.isAuthenticated())
 				throw new JwtManagementException("Error there is no previous DAO authentication to create the token");
