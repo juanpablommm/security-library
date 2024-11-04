@@ -22,4 +22,7 @@ of this in the other most.
 It is necessary to incorporate either manually or by saving it in an artifact 
 manager and importing it into the application dependencies.
 
+## Quality Gates news
+![image](https://github.com/user-attachments/assets/9cd170b6-90e0-4ee0-b478-0a17415dc687)
+
 © Juan Pablo Montoya Ospinal
