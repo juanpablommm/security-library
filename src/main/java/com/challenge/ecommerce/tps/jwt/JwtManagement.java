@@ -8,6 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +48,11 @@ public class JwtManagement {
 		return claimsResolver.apply(claims);
 	}
 
+	public <T> T extractClaim(String token, String name, Class<T> type) {
+		Claims claims = getClaims(token);
+		return claims != null ? claims.get(name, type) : null;
+	}
+
 	private Boolean isTokenExpired(final String token) {
 		return extractExpiration(token).before(new Date());
 	}
@@ -80,13 +86,13 @@ public class JwtManagement {
 
 	}
 
-	public String createToken(final String username, final String roles) {
+	public String createToken(final String username, final List<String> roles) {
 		try {
 			final OffsetDateTime offsetDateTime = OffsetDateTime.now(ZONEID);
 			final Date expiryTime = Date.from(offsetDateTime.plusMinutes(this.expiryTimeAtMinutes).toInstant());
-			return Jwts.builder().setHeader(Map.of("typ", "JWT")).setClaims(Map.of("Role", roles)).setSubject(username)
-					.setExpiration(expiryTime).signWith(this.keyRsaSupplier.getPrivateKey(), SignatureAlgorithm.RS256)
-					.compact();
+			return Jwts.builder().setHeader(Map.of("typ", "JWT")).setClaims(Map.of("Role", String.join(", ", roles)))
+					.setSubject(username).setExpiration(expiryTime)
+					.signWith(this.keyRsaSupplier.getPrivateKey(), SignatureAlgorithm.RS256).compact();
 		} catch (Exception e) {
 			log.error("This is an error in the creation of the jwt token for the user {} => {} ", username,
 					e.getMessage());

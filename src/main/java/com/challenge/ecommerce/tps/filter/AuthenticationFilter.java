@@ -38,25 +38,20 @@ public final class AuthenticationFilter extends OncePerRequestFilter {
 
 		this.addIpAddress(request);
 
-		final Optional<String> authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
-		if (authorization.isEmpty() || !jwtManagement.validate(authorization.get())) {
-			this.handleInvalidAuthentication(response, authorization.isEmpty());
+		final Optional<String> authorizationOptional = Optional
+				.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
+		if (authorizationOptional.isEmpty() || !jwtManagement.validate(authorizationOptional.get())) {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			response.getWriter().write("Invalid Authentication");
 			return;
 		}
 
-		final String email = jwtManagement.extractUsername(authorization.get());
-		final String role = jwtManagement.extractClaim(authorization.get(), claims -> claims.get("Role", String.class));
+		final String token = this.jwtManagement.clearToken(authorizationOptional.get());
+		final String email = jwtManagement.extractUsername(token);
+		final String role = jwtManagement.extractClaim(token, "Role", String.class);
 		this.setAuthentication(email, role);
 
 		filterChain.doFilter(request, response);
-	}
-
-	private void handleInvalidAuthentication(HttpServletResponse response, boolean isEmptyAuth) throws IOException {
-		if (isEmptyAuth)
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header missing");
-
-		response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Authentication");
-
 	}
 
 	private void setAuthentication(final String email, final String role) {
