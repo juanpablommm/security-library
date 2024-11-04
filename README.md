@@ -23,6 +23,7 @@ It is necessary to incorporate either manually or by saving it in an artifact
 manager and importing it into the application dependencies.
 
 ## Quality Gates news
-![image](https://github.com/user-attachments/assets/9cd170b6-90e0-4ee0-b478-0a17415dc687)
+![image](https://github.com/user-attachments/assets/5a9ca66a-10a6-49e0-90c2-37019c705ee9)
+
 
 © Juan Pablo Montoya Ospinal
