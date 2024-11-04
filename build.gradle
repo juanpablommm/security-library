@@ -1,0 +1,128 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'com.diffplug.spotless' version '6.25.0'
+    id 'jacoco'
+    id "org.sonarqube" version "5.1.0.4882"
+}
+
+group = 'com.challenge.ecommerce.tps'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:3.1.3'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+}
+
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+        cleanthat()
+        eclipse()
+        formatAnnotations()
+    }
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jacoco {
+        enabled = true
+        destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco/html')
+    }
+    classDirectories.setFrom(
+            fileTree(dir: "$buildDir/classes/java/main", includes: ['**/*.class'], excludes: [
+                    '**/exceptions/**',
+                    '**/filter/**'
+            ])
+    )
+    finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.85
+            }
+        }
+
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 0.85
+            }
+        }
+    }
+    classDirectories.setFrom(
+            fileTree(dir: "$buildDir/classes/java/main", includes: ['**/*.class'], excludes: [
+                    '**/exceptions/**',
+                    '**/filter/**'
+
+            ])
+    )
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "security-library"
+        property "sonar.host.url", System.getenv('SONAR_PROJECT_URL') ?: "http://localhost:9000"
+        property "sonar.login", System.getenv('SONAR_PROJECT_TOKEN') ?:"sqp_96f313424cbdb5274ac868cdd267819f9cdb7e21"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.junit.reportPaths", "build/test-results/test"
+        property "sonar.jacoco.reportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.coverage.minimum", "85"
+    }
+}
